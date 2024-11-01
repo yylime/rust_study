@@ -341,9 +341,49 @@ fn main() {
     let s = returns_summarizable();
     println!("{}", s.summarize());
 
+    // 生命周期
+    let s1 = "I have a static lifetime.";
+    let s2 = String::from("Hello");
+    let r = longest_str(s1, s2.as_str());
+    println!("The longest string is {}", r);
+    // 生命周期的描述不会改变，但是 rust 会自动推导出生命周期
+    // ‘a是表示生命周期比较小的一个
+    // 如果函数不返回引用而是直接返回值，则表示函数将该值所有权交给了主函数，这也是rust的设计模式之一
+    // struct 的生命周期，如果其中的值是引用，则必须标注生命周期
+    struct important_excerpt<'a>{
+        part: &'a str,
+    }
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence = novel.split('.').next().expect("Could not find a '.'");
     
+    {
+        let i: important_excerpt<'_> = important_excerpt{ part: first_sentence};
+        println!("{}", i.part);
+    }
+    // 生命周期的省略的三个规则
+    // 1. 函数参数的生命周期，函数返回值的生命周期，函数内部使用的生命周期，可以省略
+    // 2. 如果只有一个输入生命周期，则该生命周期与返回值的生命周期相同
+    // 3. 如果有多个输入生命周期，则必须为所有生命周期都指定一个，并且该生命周期必须与返回值的生命周期相同
+
+
+    // ’static 生命周期，表示该引用指向一个只读的静态字符串
+    let s: &'static str = "I have a static lifetime.";
+    // 他总是可以用的
+
 }
 
+fn longest_str<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+
+fn first_sentence(text: &str) -> &str {
+    let first = text.find('.').unwrap();
+    &text[..first]
+}
 fn take(s:&mut String) -> String {
     s.push_str("4");
     s.clone()
